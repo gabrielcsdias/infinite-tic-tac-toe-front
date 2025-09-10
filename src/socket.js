@@ -1,25 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-const URL =
-  process.env.NODE_ENV === "production"
-    ? window.location.origin // produção: usa o mesmo domínio do frontend
-    : "http://localhost:3001"; // dev: conecta ao servidor local
+export function useSocket() {
+  const [socket, setSocket] = useState(null);
 
-export const socket = io(URL, {
-  transports: ["websocket"], // força websocket, evita long polling
-  withCredentials: true, // envia cookies se precisar
-  autoConnect: true, // conecta automaticamente
-});
+  useEffect(() => {
+    const URL =
+      process.env.NODE_ENV === "production"
+        ? window.location.origin // só roda no browser
+        : "http://localhost:3001";
 
-// logs úteis pra debug
-socket.on("connect", () => {
-  console.log("✅ Socket conectado:", socket.id);
-});
+    const newSocket = io(URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+      autoConnect: true,
+    });
 
-socket.on("disconnect", (reason) => {
-  console.log("❌ Socket desconectado:", reason);
-});
+    setSocket(newSocket);
 
-socket.on("connect_error", (err) => {
-  console.error("⚠️ Erro de conexão socket:", err.message);
-});
+    // logs úteis
+    newSocket.on("connect", () => {
+      console.log("✅ Socket conectado:", newSocket.id);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("❌ Socket desconectado:", reason);
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("⚠️ Erro de conexão socket:", err.message);
+    });
+
+    return () => newSocket.close();
+  }, []);
+
+  return socket;
+}
