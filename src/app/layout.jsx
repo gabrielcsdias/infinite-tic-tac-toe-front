@@ -31,6 +31,10 @@ export default function RootLayout({ children }) {
           name="google-site-verification"
           content="h3EmKu3aV2V8vwpkFXMaxBO-7eu6SSu22d-sp8_psDg"
         />
+        <link
+          rel="canonical"
+          href="https://infinite-tic-tac-toe-front.vercel.app/"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
