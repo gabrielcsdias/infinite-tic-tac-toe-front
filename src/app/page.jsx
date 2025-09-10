@@ -2,12 +2,10 @@
 import Board from "@/components/game/Board";
 import Status from "@/components/game/Status";
 import Button from "@/components/ui/Button";
-// import { useSocket } from "@/socket";
 import { socket } from "@/socket";
 import React from "react";
 
 export default function Home() {
-  // const socket = useSocket();
   const [isConnected, setIsConnected] = React.useState(false);
   const [page, setPage] = React.useState("home");
   const [roomCode, setRoomCode] = React.useState("");

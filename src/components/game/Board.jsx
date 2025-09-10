@@ -20,9 +20,11 @@ export default function Board({ board, turn, playerSymbol, winner, waitingForPla
             value={cell}
             index={index}
             borderClasses={borderClasses}
-            disabled={!!cell || turn !== playerSymbol || winner || waitingForPlayer}
+            disabled={
+              !!cell || turn !== playerSymbol || winner || waitingForPlayer
+            }
             onClick={onMove}
-            className={nextDisappear === index ? "opacity-50" : ""}
+            className={nextDisappear === index ? "fade-animation" : ""}
           />
         );
       })}
