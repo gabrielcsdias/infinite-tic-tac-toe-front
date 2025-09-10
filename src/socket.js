@@ -1,26 +1,36 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-const URL =
-  process.env.NODE_ENV === "production"
-    ? window.location.origin
-    : "http://localhost:3001";
+export function useSocket() {
+  const [socket, setSocket] = useState(null);
 
-export const socket = io(URL, {
-  transports: ["websocket"],
-  withCredentials: true,
-  autoConnect: true,
-});
+  useEffect(() => {
+    const URL =
+      process.env.NODE_ENV === "production"
+        ? window.location.origin
+        : "http://localhost:3001";
 
-socket.on("connect", () => {
-  console.log("✅ Socket conectado:", socket.id);
-});
+    const newSocket = io(URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+      autoConnect: true,
+    });
 
-socket.on("disconnect", (reason) => {
-  console.log("❌ Socket desconectado:", reason);
-});
+    setSocket(newSocket);
 
-socket.on("connect_error", (err) => {
-  console.error("⚠️ Erro de conexão socket:", err.message);
-});
+    newSocket.on("connect", () =>
+      console.log("✅ Socket conectado:", newSocket.id)
+    );
+    newSocket.on("disconnect", (reason) =>
+      console.log("❌ Socket desconectado:", reason)
+    );
+    newSocket.on("connect_error", (err) =>
+      console.error("⚠️ Erro de conexão socket:", err.message)
+    );
+
+    return () => newSocket.close();
+  }, []);
+
+  return socket;
+}
