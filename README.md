@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Infinite Tic-Tac-Toe 🟢❌
 
-## Getting Started
+![Infinite Tic-Tac-Toe](https://infinite-tic-tac-toe-front.vercel.app/logo.png)
 
-First, run the development server:
+**Infinite Tic-Tac-Toe** é um jogo da velha multiplayer online com algumas mecânicas especiais, feito com **Next.js**, **React** e **Socket.IO**. Você pode criar salas públicas ou privadas e jogar em tempo real com amigos.  
 
+O jogo inclui:
+- Criação de salas públicas ou privadas  
+- Entrar em salas existentes ou aleatórias  
+- Sistema de turnos com limite de 3 peças por jogador  
+- Movimento “desaparecer” das peças antigas ao colocar novas  
+- Revanche e reset de partidas  
+
+## 🔗 Acesse o jogo
+[Infinite Tic-Tac-Toe Online](https://infinite-tic-tac-toe-front.vercel.app/)
+
+---
+
+## 🛠 Tecnologias usadas
+- [Next.js](https://nextjs.org/) (React + SSR)  
+- [React.js](https://reactjs.org/)  
+- [Socket.IO](https://socket.io/) para comunicação em tempo real  
+- [Express](https://expressjs.com/) + Node.js no backend  
+- Tailwind CSS para estilização  
+
+---
+
+## ⚡ Funcionalidades
+
+### Cliente
+- Interface responsiva com React  
+- Criação/entrada de salas em tempo real  
+- Indicação de turnos e vencedor  
+- Mensagens quando outro jogador entra ou sai da sala  
+
+### Servidor
+- Gerenciamento de salas públicas e privadas  
+- Sistema de turnos e movimentos do jogo  
+- Emissão de eventos `room-created`, `room-joined`, `move-made`, `player-left` e `rematch-started`  
+- Lógica de “desaparecer” de peças antigas após 3 movimentos  
+
+---
+
+## 💻 Como rodar localmente
+
+### Requisitos
+- Node.js >= 18  
+- npm ou yarn  
+
+### Passos
+
+1. Clone o repositório
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone https://github.com/seu-usuario/infinite-tic-tac-toe.git
+cd infinite-tic-tac-toe
