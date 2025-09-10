@@ -24,7 +24,7 @@ export default function Board({ board, turn, playerSymbol, winner, waitingForPla
               !!cell || turn !== playerSymbol || winner || waitingForPlayer
             }
             onClick={onMove}
-            className={nextDisappear === index ? "fade-animation" : ""}
+            nextDisappear={nextDisappear}
           />
         );
       })}

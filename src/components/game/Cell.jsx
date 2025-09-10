@@ -10,6 +10,7 @@ export default function Cell({
   disabled,
   onClick,
   className = "",
+  nextDisappear,
 }) {
   return (
     <div
@@ -17,7 +18,19 @@ export default function Cell({
       style={{ color: value === "X" ? "#EF4444" : "#3B82F6" }}
       onClick={() => !disabled && onClick(index)}
     >
-      {value ? value == "X" ? <CellX /> : <CellO className="rotate-45" /> : ""}
+      {value ? (
+        value == "X" ? (
+          <CellX className={nextDisappear === index ? "fade-animation" : ""} />
+        ) : (
+          <CellO
+            className={`rotate-45 ${
+              nextDisappear === index ? "fade-animation" : ""
+            }`}
+          />
+        )
+      ) : (
+        ""
+      )}
     </div>
   );
 }
