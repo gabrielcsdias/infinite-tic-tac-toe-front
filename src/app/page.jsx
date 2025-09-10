@@ -2,10 +2,11 @@
 import Board from "@/components/game/Board";
 import Status from "@/components/game/Status";
 import Button from "@/components/ui/Button";
-import { socket } from "@/socket";
+import { useSocket } from "@/socket"; // hook client-safe
 import React from "react";
 
 export default function Home() {
+  const socket = useSocket();
   const [isConnected, setIsConnected] = React.useState(socket.connected);
   const [page, setPage] = React.useState("home");
   const [roomCode, setRoomCode] = React.useState("");
@@ -18,6 +19,8 @@ export default function Home() {
   const [nextDisappear, setNextDisappear] = React.useState(null);
 
   React.useEffect(() => {
+    if (!socket) return;
+
     socket.on("connect", () => {
       setIsConnected(true);
       console.log("✅ Conectado ao servidor:", socket.id);
