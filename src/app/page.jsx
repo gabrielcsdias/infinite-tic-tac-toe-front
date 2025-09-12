@@ -109,19 +109,26 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
-      <p className="font-bold text-4xl text-[var(--foreground)] font-asimovian">
+      <h1 className="font-bold text-4xl text-[var(--foreground)] font-asimovian">
         INFINITE TIC-TAC-TOE
-      </p>
+      </h1>
       {page === "home" && (
-        <div className="buttons">
-          <Button
-            primary
-            onClick={() => {
-              setPage("starting-room");
-            }}
-          >
-            JOGAR
-          </Button>
+        <div className="flex flex-col items-center">
+          <p className="mb-6 max-w-xl text-center text-lg text-gray-400">
+            Play Infinite Tic Tac Toe online with your friends. An endless board
+            version of the classic Tic Tac Toe, available for multiplayer
+            matches in real time.
+          </p>
+          <div className="buttons">
+            <Button
+              primary
+              onClick={() => {
+                setPage("starting-room");
+              }}
+            >
+              PLAY
+            </Button>
+          </div>
         </div>
       )}
       {page === "starting-room" && (
@@ -132,7 +139,7 @@ export default function Home() {
               setPage("create-room");
             }}
           >
-            CRIAR UMA SALA
+            CREATE A ROOM
           </Button>
           <Button
             primary
@@ -140,7 +147,7 @@ export default function Home() {
               setPage("join-room");
             }}
           >
-            ENTRAR EM UMA SALA
+            JOIN A ROOM
           </Button>
           <Button
             secondary
@@ -148,7 +155,7 @@ export default function Home() {
               setPage("home");
             }}
           >
-            VOLTAR
+            BACK
           </Button>
         </div>
       )}
@@ -160,7 +167,7 @@ export default function Home() {
               socket.emit("create-room", { isPublic: true });
             }}
           >
-            CRIAR SALA PUBLICA
+            CREATE PUBLIC ROOM
           </Button>
           <Button
             primary
@@ -168,7 +175,7 @@ export default function Home() {
               socket.emit("create-room", { isPublic: false });
             }}
           >
-            CRIAR SALA PRIVADA
+            CREATE PRIVATE ROOM
           </Button>
           <Button
             secondary
@@ -176,7 +183,7 @@ export default function Home() {
               setPage("starting-room");
             }}
           >
-            VOLTAR
+            BACK
           </Button>
         </div>
       )}
@@ -188,12 +195,12 @@ export default function Home() {
               socket.emit("join-random-room");
             }}
           >
-            ENTRAR EM SALA ALEATÓRIA
+            JOIN RANDOM ROOM
           </Button>
           <div className="flex flex-row items-center justify-center">
             <input
               type="text"
-              placeholder="Código da Sala"
+              placeholder="Room Code"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               className="border border-[var(--board-line)] px-4 py-2 rounded-xl mr-2 text-center w-full max-w-1/2"
@@ -206,7 +213,7 @@ export default function Home() {
                 socket.emit("join-room", { code: roomCode });
               }}
             >
-              ENTRAR
+              JOIN
             </Button>
           </div>
           <Button
@@ -215,7 +222,7 @@ export default function Home() {
               setPage("starting-room");
             }}
           >
-            VOLTAR
+            BACK
           </Button>
         </div>
       )}
@@ -249,7 +256,7 @@ export default function Home() {
                   socket.emit("rematch", { roomCode });
                 }}
               >
-                RECOMEÇAR
+                REMATCH
               </Button>
             )}
             <Button
@@ -259,7 +266,7 @@ export default function Home() {
                 socket.emit("leave-room", { roomCode });
               }}
             >
-              SAIR DA SALA
+              LEAVE ROOM
             </Button>
           </div>
         </div>

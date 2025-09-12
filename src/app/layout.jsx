@@ -2,25 +2,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Infinite Tic Tac Toe",
-  description: "Play infinite tic tac toe against your friends.",
-  keywords: [
-    // Inglês
-    "tic tac toe",
-    "infinite tic tac toe",
-    "endless tic tac toe",
-    "play tic tac toe online",
-    "multiplayer tic tac toe",
-    "tic tac toe infinite board",
-
-    // Português
-    "jogo da velha",
-    "jogo da velha infinito",
-    "jogo da velha online",
-    "jogar jogo da velha infinito",
-    "jogo da velha multiplayer",
-    "tabuleiro infinito jogo da velha",
-  ],
+  title: "Infinite Tic Tac Toe - Online Multiplayer",
+  description:
+    "Play Infinite Tic Tac Toe online with friends. An endless version of the classic Tic Tac Toe (Jogo da Velha Infinito) with real-time multiplayer matches.",
 };
 
 export default function RootLayout({ children }) {
