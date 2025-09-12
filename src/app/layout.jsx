@@ -33,6 +33,27 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Asimovian&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
           rel="stylesheet"
         />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Infinite Tic Tac Toe",
+              url: "https://infinite-tic-tac-toe-front.vercel.app/",
+              description:
+                "Play Infinite Tic Tac Toe online with friends. An endless version of the classic Tic Tac Toe with real-time multiplayer matches.",
+              inLanguage: "en",
+              potentialAction: {
+                "@type": "SearchAction",
+                target:
+                  "https://infinite-tic-tac-toe-front.vercel.app/?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body className="font-nunito antialiased">{children}</body>
     </html>
