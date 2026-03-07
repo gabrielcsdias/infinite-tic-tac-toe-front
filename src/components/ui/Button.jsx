@@ -12,7 +12,7 @@ export default function Button({ children, onClick, primary, secondary, classNam
 
   return (
     <button
-      className={`${bgClass} text-white px-4 py-2 rounded-xl cursor-pointer font-bold ${className}`}
+      className={`${bgClass} text-white px-4 py-2 rounded-xl cursor-pointer font-bold transition-all hover:scale-105 ${className}`}
       onClick={onClick}
     >
       {children}
