@@ -4,6 +4,7 @@ import Status from "@/components/game/Status";
 import Button from "@/components/ui/Button";
 import { socket } from "@/socket";
 import React from "react";
+import { toast } from "sonner";
 
 export default function Home() {
   const [isConnected, setIsConnected] = React.useState(false);
@@ -93,6 +94,11 @@ export default function Home() {
       setNextDisappear(data);
     });
 
+    socket.on("error", (data) => {
+      console.log("📥 Erro recebido:", data);
+      toast(data)
+    });
+
     return () => {
       socket.off("connect");
       socket.off("disconnect");
@@ -104,6 +110,7 @@ export default function Home() {
       socket.off("left-room");
       socket.off("rematch-started");
       socket.off("next-disappear");
+      socket.off("error");
     };
   }, []);
 

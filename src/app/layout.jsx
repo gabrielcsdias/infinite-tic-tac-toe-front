@@ -1,4 +1,5 @@
 // src/app/layout.tsx
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata = {
@@ -55,7 +56,20 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="font-nunito antialiased">{children}</body>
+      <body className="font-nunito antialiased">
+        <Toaster
+          position="top-center"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: "var(--background)",
+              color: "var(--foreground)",
+              border: "1px solid var(--board-line)",
+            },
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
