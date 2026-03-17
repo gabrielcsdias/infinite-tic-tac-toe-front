@@ -1,13 +1,23 @@
 "use client";
+import { motion, AnimatePresence } from "framer-motion";
 import Board from "@/components/game/Board";
 import Status from "@/components/game/Status";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import { socket } from "@/socket";
 import React from "react";
 import { toast } from "sonner";
+import { IconRefresh, IconCopy } from "@/components/ui/Icons";
+
+const pageVariants = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
+};
 
 export default function Home() {
   const [isConnected, setIsConnected] = React.useState(false);
+  const [isConnecting, setIsConnecting] = React.useState(true);
   const [page, setPage] = React.useState("home");
   const [roomCode, setRoomCode] = React.useState("");
   const [waitingForPlayer, setWaitingForPlayer] = React.useState(false);
@@ -17,22 +27,26 @@ export default function Home() {
   const [board, setBoard] = React.useState([]);
   const [winner, setWinner] = React.useState(null);
   const [nextDisappear, setNextDisappear] = React.useState(null);
+  const [isJoining, setIsJoining] = React.useState(false);
 
   React.useEffect(() => {
     if (!socket) return;
 
-    socket.on("connect", () => {
+    const handleConnect = () => {
       setIsConnected(true);
-      console.log("✅ Conectado ao servidor:", socket.id);
-    });
+      setIsConnecting(false);
+    };
 
-    socket.on("disconnect", () => {
+    const handleDisconnect = () => {
       setIsConnected(false);
-      console.log("❌ Desconectado do servidor");
-    });
+      setIsConnecting(true);
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     socket.on("room-created", (data) => {
-      console.log("📥 Sala recebida:", data);
+      setIsJoining(false);
       setWaitingForPlayer(true);
       setRoomCode(data.code);
       setPlayerSymbol(data.symbol);
@@ -42,7 +56,7 @@ export default function Home() {
     });
 
     socket.on("room-joined", (data) => {
-      console.log("📥 Jogo iniciado:", data);
+      setIsJoining(false);
       if (data.roomCode) setRoomCode(data.roomCode);
       setPlayerSymbol(data.symbol);
       setBoard(data.board);
@@ -51,7 +65,6 @@ export default function Home() {
     });
 
     socket.on("player-joined", (data) => {
-      console.log("📥 Jogador entrou na sala:", data);
       setWaitingForPlayer(false);
       setLeftPlayer("");
       setBoard(data.board);
@@ -59,14 +72,12 @@ export default function Home() {
     });
 
     socket.on("move-made", (data) => {
-      console.log("📥 Movimento recebido:", data);
       setBoard(data.board);
       setTurn(data.turn);
       setWinner(data.winner);
     });
 
     socket.on("player-left", (data) => {
-      console.log("📥 Jogador saiu da sala:", data);
       setWaitingForPlayer(true);
       setLeftPlayer(data.leftSymbol);
     });
@@ -83,25 +94,27 @@ export default function Home() {
     });
 
     socket.on("rematch-started", (data) => {
-      console.log("📥 Revanche iniciada:", data);
       setBoard(data.board);
       setTurn(data.turn);
       setWinner(null);
     });
 
     socket.on("next-disappear", (data) => {
-      console.log("📥 Next disappear:", data);
       setNextDisappear(data);
     });
 
     socket.on("error", (data) => {
-      console.log("📥 Erro recebido:", data);
-      toast(data)
+      toast.error(data);
+      setIsJoining(false);
     });
 
+    if (socket.connected) {
+      setIsConnecting(false);
+    }
+
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("room-created");
       socket.off("room-joined");
       socket.off("player-joined");
@@ -114,170 +127,237 @@ export default function Home() {
     };
   }, []);
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-2">
-      <h1 className="font-bold text-4xl text-[var(--foreground)] font-asimovian">
-        INFINITE TIC-TAC-TOE
-      </h1>
-      {page === "home" && (
-        <div className="flex flex-col items-center">
-          <p className="mb-6 max-w-xl text-center text-lg text-gray-400">
-            Play Infinite Tic Tac Toe online with your friends. An endless board
-            version of the classic Tic Tac Toe, available for multiplayer
-            matches in real time.
-          </p>
-          <div className="buttons">
+  const handleCreateRoom = (isPublic) => {
+    socket.emit("create-room", { isPublic });
+  };
+
+  const handleJoinRoom = (code = null) => {
+    setIsJoining(true);
+    socket.emit(code ? "join-room" : "join-random-room", code ? { code } : {});
+  };
+
+  const renderPage = () => {
+    switch (page) {
+      case "home":
+        return (
+          <motion.div
+            key="home"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col items-center text-center"
+          >
+
+            <p className="mb-8 max-w-md text-base sm:text-lg text-[var(--muted)] leading-relaxed">
+              Play Infinite Tic Tac Toe online with friends. An endless board
+              version of the classic game with real-time multiplayer.
+            </p>
+            <Button primary onClick={() => setPage("starting-room")}>
+              PLAY NOW
+            </Button>
+            {!isConnected && !isConnecting && (
+              <p className="mt-4 text-sm text-[var(--error)]">
+                Server disconnected
+              </p>
+            )}
+          </motion.div>
+        );
+
+      case "starting-room":
+        return (
+          <motion.div
+            key="starting-room"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 w-full max-w-xs"
+          >
+            <h2 className="text-xl font-semibold text-center mb-2">
+              Choose Option
+            </h2>
+            <Button primary onClick={() => { setIsJoining(false); setPage("create-room"); }}>
+              CREATE A ROOM
+            </Button>
+            <Button primary onClick={() => { setIsJoining(false); setRoomCode(""); setPage("join-room"); }}>
+              JOIN A ROOM
+            </Button>
+            <Button secondary onClick={() => setPage("home")}>
+              BACK
+            </Button>
+          </motion.div>
+        );
+
+      case "create-room":
+        return (
+          <motion.div
+            key="create-room"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 w-full max-w-xs"
+          >
+            <h2 className="text-xl font-semibold text-center mb-2">
+              Create Room
+            </h2>
+            <Button primary onClick={() => handleCreateRoom(true)}>
+              PUBLIC ROOM
+            </Button>
+            <Button primary onClick={() => handleCreateRoom(false)}>
+              PRIVATE ROOM
+            </Button>
+            <Button secondary onClick={() => setPage("starting-room")}>
+              BACK
+            </Button>
+          </motion.div>
+        );
+
+      case "join-room":
+        return (
+          <motion.div
+            key="join-room"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 w-full max-w-xs"
+          >
+            <h2 className="text-xl font-semibold text-center mb-2">
+              Join Room
+            </h2>
             <Button
               primary
-              onClick={() => {
-                setPage("starting-room");
-              }}
+              onClick={() => handleJoinRoom()}
+              loading={isJoining}
             >
-              PLAY
+              JOIN RANDOM
             </Button>
-          </div>
-        </div>
-      )}
-      {page === "starting-room" && (
-        <div className="buttons flex flex-col gap-4">
-          <Button
-            primary
-            onClick={() => {
-              setPage("create-room");
-            }}
-          >
-            CREATE A ROOM
-          </Button>
-          <Button
-            primary
-            onClick={() => {
-              setPage("join-room");
-            }}
-          >
-            JOIN A ROOM
-          </Button>
-          <Button
-            secondary
-            onClick={() => {
-              setPage("home");
-            }}
-          >
-            BACK
-          </Button>
-        </div>
-      )}
-      {page === "create-room" && (
-        <div className="buttons flex flex-col gap-4">
-          <Button
-            primary
-            onClick={() => {
-              socket.emit("create-room", { isPublic: true });
-            }}
-          >
-            CREATE PUBLIC ROOM
-          </Button>
-          <Button
-            primary
-            onClick={() => {
-              socket.emit("create-room", { isPublic: false });
-            }}
-          >
-            CREATE PRIVATE ROOM
-          </Button>
-          <Button
-            secondary
-            onClick={() => {
-              setPage("starting-room");
-            }}
-          >
-            BACK
-          </Button>
-        </div>
-      )}
-      {page === "join-room" && (
-        <div className="buttons flex flex-col gap-4">
-          <Button
-            primary
-            onClick={() => {
-              socket.emit("join-random-room");
-            }}
-          >
-            JOIN RANDOM ROOM
-          </Button>
-          <div className="flex flex-row items-center justify-center">
-            <input
-              type="text"
-              placeholder="Room Code"
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              className="border border-[var(--board-line)] px-4 py-2 rounded-xl mr-2 text-center w-full max-w-1/2"
-              maxLength={6}
-            />
-            <Button
-              primary
-              className="w-full max-w-1/2"
-              onClick={() => {
-                socket.emit("join-room", { code: roomCode });
-              }}
-            >
-              JOIN
-            </Button>
-          </div>
-          <Button
-            secondary
-            onClick={() => {
-              setPage("starting-room");
-            }}
-          >
-            BACK
-          </Button>
-        </div>
-      )}
-      {page === "game" && (
-        <div>
-          <Status
-            waitingForPlayer={waitingForPlayer}
-            leftPlayer={leftPlayer}
-            playerSymbol={playerSymbol}
-            turn={turn}
-            winner={winner}
-            roomCode={roomCode}
-          />
-          <Board
-            board={board}
-            turn={turn}
-            playerSymbol={playerSymbol}
-            winner={winner}
-            waitingForPlayer={waitingForPlayer}
-            onMove={(index) => {
-              socket.emit("make-move", { roomCode, index });
-            }}
-            nextDisappear={nextDisappear}
-          />
-          <div className="flex flex-col justify-center">
-            {winner && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Room Code"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                className="flex-1 border-2 border-[var(--border)] rounded-xl text-center font-mono text-lg bg-[var(--card)] text-[var(--foreground)]"
+                maxLength={6}
+              />
               <Button
                 primary
-                className="mt-4"
+                onClick={() => handleJoinRoom(roomCode)}
+                loading={isJoining}
+                disabled={roomCode.length < 4}
+              >
+                JOIN
+              </Button>
+            </div>
+            <Button secondary onClick={() => setPage("starting-room")}>
+              BACK
+            </Button>
+          </motion.div>
+        );
+
+      case "game":
+        return (
+          <motion.div
+            key="game"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col items-center"
+          >
+            <Status
+              waitingForPlayer={waitingForPlayer}
+              leftPlayer={leftPlayer}
+              playerSymbol={playerSymbol}
+              turn={turn}
+              winner={winner}
+              roomCode={roomCode}
+            />
+            <Board
+              board={board}
+              turn={turn}
+              playerSymbol={playerSymbol}
+              winner={winner}
+              waitingForPlayer={waitingForPlayer}
+              onMove={(index) => {
+                socket.emit("make-move", { roomCode, index });
+              }}
+              nextDisappear={nextDisappear}
+            />
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              {winner && (
+                <Button
+                  primary
+                  icon={IconRefresh}
+                  onClick={() => {
+                    socket.emit("rematch", { roomCode });
+                  }}
+                >
+                  REMATCH
+                </Button>
+              )}
+              <Button
+                secondary
                 onClick={() => {
-                  socket.emit("rematch", { roomCode });
+                  socket.emit("leave-room", { roomCode });
                 }}
               >
-                REMATCH
+                LEAVE ROOM
               </Button>
-            )}
-            <Button
-              secondary
-              className="mt-4"
-              onClick={() => {
-                socket.emit("leave-room", { roomCode });
-              }}
-            >
-              LEAVE ROOM
-            </Button>
-          </div>
-        </div>
+            </div>
+          </motion.div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+      <motion.h1
+        className="font-bold text-2xl sm:text-3xl md:text-4xl text-center mb-8 tracking-tight"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        Infinite Tic-Tac-Toe
+      </motion.h1>
+
+      {isConnecting ? (
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <Spinner size="xl" className="text-[var(--primary)]" />
+          <p className="text-[var(--muted)]">Connecting to server...</p>
+        </motion.div>
+      ) : (
+        <AnimatePresence mode="wait">{renderPage()}</AnimatePresence>
       )}
+
+      <motion.div
+        className="fixed bottom-4 text-xs text-[var(--muted)]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        {isConnected ? (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-[var(--success)]" />
+            Connected
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-[var(--error)]" />
+            Disconnected
+          </span>
+        )}
+      </motion.div>
     </div>
   );
 }
