@@ -11,6 +11,7 @@ export default function Status({
   turn,
   winner,
   roomCode,
+  scores = { X: 0, O: 0 },
 }) {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(roomCode);
@@ -88,6 +89,9 @@ export default function Status({
               />
               <span className="font-medium" style={{ color: primaryColor }}>
                 {winner} Wins
+              </span>
+              <span className="text-sm text-[var(--muted)]">
+                {scores.X} - {scores.O}
               </span>
             </motion.div>
           ) : turn === playerSymbol ? (

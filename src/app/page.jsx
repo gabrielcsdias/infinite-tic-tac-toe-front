@@ -28,6 +28,7 @@ export default function Home() {
   const [winner, setWinner] = React.useState(null);
   const [nextDisappear, setNextDisappear] = React.useState(null);
   const [isJoining, setIsJoining] = React.useState(false);
+  const [scores, setScores] = React.useState({ X: 0, O: 0 });
 
   React.useEffect(() => {
     if (!socket) return;
@@ -52,12 +53,14 @@ export default function Home() {
       setPlayerSymbol(data.symbol);
       setBoard(data.board);
       setTurn(data.turn);
+      setScores(data.scores || { X: 0, O: 0 });
       setPage("game");
     });
 
     socket.on("room-joined", (data) => {
       setIsJoining(false);
       if (data.roomCode) setRoomCode(data.roomCode);
+      setScores(data.scores || { X: 0, O: 0 });
       setPlayerSymbol(data.symbol);
       setBoard(data.board);
       setTurn(data.turn);
@@ -67,14 +70,17 @@ export default function Home() {
     socket.on("player-joined", (data) => {
       setWaitingForPlayer(false);
       setLeftPlayer("");
+      setWinner(null);
       setBoard(data.board);
       setTurn(data.turn);
+      setScores(data.scores || { X: 0, O: 0 });
     });
 
     socket.on("move-made", (data) => {
       setBoard(data.board);
       setTurn(data.turn);
       setWinner(data.winner);
+      if (data.scores) setScores(data.scores);
     });
 
     socket.on("player-left", (data) => {
@@ -91,12 +97,14 @@ export default function Home() {
       setTurn("X");
       setBoard([]);
       setWinner(null);
+      setScores({ X: 0, O: 0 });
     });
 
     socket.on("rematch-started", (data) => {
       setBoard(data.board);
       setTurn(data.turn);
       setWinner(null);
+      if (data.scores) setScores(data.scores);
     });
 
     socket.on("next-disappear", (data) => {
@@ -275,6 +283,7 @@ export default function Home() {
               turn={turn}
               winner={winner}
               roomCode={roomCode}
+              scores={scores}
             />
             <Board
               board={board}
