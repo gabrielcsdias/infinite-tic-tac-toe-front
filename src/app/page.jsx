@@ -4,10 +4,8 @@ import Board from "@/components/game/Board";
 import Status from "@/components/game/Status";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
-import { socket } from "@/socket";
-import React from "react";
-import { toast } from "sonner";
-import { IconRefresh, IconCopy } from "@/components/ui/Icons";
+import { useGame } from "@/hooks/useGame";
+import { IconRefresh } from "@/components/ui/Icons";
 
 const pageVariants = {
   initial: { opacity: 0, x: 20 },
@@ -16,133 +14,29 @@ const pageVariants = {
 };
 
 export default function Home() {
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [isConnecting, setIsConnecting] = React.useState(true);
-  const [page, setPage] = React.useState("home");
-  const [roomCode, setRoomCode] = React.useState("");
-  const [waitingForPlayer, setWaitingForPlayer] = React.useState(false);
-  const [leftPlayer, setLeftPlayer] = React.useState("");
-  const [playerSymbol, setPlayerSymbol] = React.useState("");
-  const [turn, setTurn] = React.useState("X");
-  const [board, setBoard] = React.useState([]);
-  const [winner, setWinner] = React.useState(null);
-  const [nextDisappear, setNextDisappear] = React.useState(null);
-  const [isJoining, setIsJoining] = React.useState(false);
-  const [scores, setScores] = React.useState({ X: 0, O: 0 });
-
-  React.useEffect(() => {
-    if (!socket) return;
-
-    const handleConnect = () => {
-      setIsConnected(true);
-      setIsConnecting(false);
-    };
-
-    const handleDisconnect = () => {
-      setIsConnected(false);
-      setIsConnecting(true);
-    };
-
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-
-    socket.on("room-created", (data) => {
-      setIsJoining(false);
-      setWaitingForPlayer(true);
-      setRoomCode(data.code);
-      setPlayerSymbol(data.symbol);
-      setBoard(data.board);
-      setTurn(data.turn);
-      setScores(data.scores || { X: 0, O: 0 });
-      setPage("game");
-    });
-
-    socket.on("room-joined", (data) => {
-      setIsJoining(false);
-      if (data.roomCode) setRoomCode(data.roomCode);
-      setScores(data.scores || { X: 0, O: 0 });
-      setPlayerSymbol(data.symbol);
-      setBoard(data.board);
-      setTurn(data.turn);
-      setPage("game");
-    });
-
-    socket.on("player-joined", (data) => {
-      setWaitingForPlayer(false);
-      setLeftPlayer("");
-      setWinner(null);
-      setBoard(data.board);
-      setTurn(data.turn);
-      setScores(data.scores || { X: 0, O: 0 });
-    });
-
-    socket.on("move-made", (data) => {
-      setBoard(data.board);
-      setTurn(data.turn);
-      setWinner(data.winner);
-      if (data.scores) setScores(data.scores);
-    });
-
-    socket.on("player-left", (data) => {
-      setWaitingForPlayer(true);
-      setLeftPlayer(data.leftSymbol);
-    });
-
-    socket.on("left-room", () => {
-      setPage("home");
-      setRoomCode("");
-      setWaitingForPlayer(false);
-      setLeftPlayer("");
-      setPlayerSymbol("");
-      setTurn("X");
-      setBoard([]);
-      setWinner(null);
-      setScores({ X: 0, O: 0 });
-    });
-
-    socket.on("rematch-started", (data) => {
-      setBoard(data.board);
-      setTurn(data.turn);
-      setWinner(null);
-      if (data.scores) setScores(data.scores);
-    });
-
-    socket.on("next-disappear", (data) => {
-      setNextDisappear(data);
-    });
-
-    socket.on("error", (data) => {
-      toast.error(data);
-      setIsJoining(false);
-    });
-
-    if (socket.connected) {
-      setIsConnecting(false);
-    }
-
-    return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-      socket.off("room-created");
-      socket.off("room-joined");
-      socket.off("player-joined");
-      socket.off("move-made");
-      socket.off("player-left");
-      socket.off("left-room");
-      socket.off("rematch-started");
-      socket.off("next-disappear");
-      socket.off("error");
-    };
-  }, []);
-
-  const handleCreateRoom = (isPublic) => {
-    socket.emit("create-room", { isPublic });
-  };
-
-  const handleJoinRoom = (code = null) => {
-    setIsJoining(true);
-    socket.emit(code ? "join-room" : "join-random-room", code ? { code } : {});
-  };
+  const {
+    isConnected,
+    isConnecting,
+    page,
+    roomCode,
+    waitingForPlayer,
+    leftPlayer,
+    playerSymbol,
+    turn,
+    board,
+    winner,
+    nextDisappear,
+    isJoining,
+    scores,
+    setPage,
+    setRoomCode,
+    setIsJoining,
+    handleCreateRoom,
+    handleJoinRoom,
+    handleLeaveRoom,
+    handleRematch,
+    handleMove,
+  } = useGame();
 
   const renderPage = () => {
     switch (page) {
@@ -156,7 +50,6 @@ export default function Home() {
             exit="exit"
             className="flex flex-col items-center text-center"
           >
-
             <p className="mb-8 max-w-md text-base sm:text-lg text-[var(--muted)] leading-relaxed">
               Play Infinite Tic Tac Toe online with friends. An endless board
               version of the classic game with real-time multiplayer.
@@ -291,9 +184,7 @@ export default function Home() {
               playerSymbol={playerSymbol}
               winner={winner}
               waitingForPlayer={waitingForPlayer}
-              onMove={(index) => {
-                socket.emit("make-move", { roomCode, index });
-              }}
+              onMove={handleMove}
               nextDisappear={nextDisappear}
             />
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
@@ -301,18 +192,14 @@ export default function Home() {
                 <Button
                   primary
                   icon={IconRefresh}
-                  onClick={() => {
-                    socket.emit("rematch", { roomCode });
-                  }}
+                  onClick={handleRematch}
                 >
                   REMATCH
                 </Button>
               )}
               <Button
                 secondary
-                onClick={() => {
-                  socket.emit("leave-room", { roomCode });
-                }}
+                onClick={handleLeaveRoom}
               >
                 LEAVE ROOM
               </Button>

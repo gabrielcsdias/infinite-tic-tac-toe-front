@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
-import CellO from "../ui/CellO";
-import CellX from "../ui/CellX";
+import CellO from "./CellO";
+import CellX from "./CellX";
 
 export default function Cell({
   value,
